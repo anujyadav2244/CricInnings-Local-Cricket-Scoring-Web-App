@@ -53,21 +53,9 @@ Backend will be available at `http://localhost:8080`.
 
 ---
 
+
+---
+
 ## 📄 License
-
-This project is licensed under the MIT License. You are free to use, modify, and distribute this software with proper attribution.
-
----
-
-## About
-
-Cricbook backend powers a local cricket scoring platform, enabling admins to manage leagues, matches, teams, and provide real-time scores and commentary for local tournaments.
-
-```
-
----
-
-If you want, I can also make a **super short version** specifically optimized for GitHub **homepage preview**, which highlights the project and tech stack at a glance.  
-
-Do you want me to do that?
-```
+This project is licensed under the [MIT License](./LICENSE).  
+You are free to use, modify, and distribute this software with proper attribution.
