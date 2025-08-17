@@ -1,102 +1,73 @@
-# Cricbook Backend – Local Cricket Scoring Web App
+# Cricbook – Local Cricket Scoring Backend
 
-The backend service for **Cricbook**, built using **Spring Boot**. It manages leagues, teams, players, matches, scores, and ball-by-ball commentary. Provides REST APIs for the React frontend and uses MongoDB Atlas for data storage.
-
----
-
-## Features
-
-- JWT-based authentication and email verification.
-- CRUD operations for leagues, teams, players, and matches.
-- Real-time score updates.
-- Ball-by-ball commentary.
-- Role-based access for admins.
+Cricbook is the backend service for a local cricket tournament scoring web app. It provides APIs to manage leagues, teams, players, matches, scores, and real-time commentary.
 
 ---
 
-## Tech Stack
+## 🚧 Status
+Backend is under active development. Core features like authentication, match management, and score updates are implemented.  
 
+---
+
+## 📌 MVP Scope
+- User signup/login with JWT-based authentication
+- Email verification via OTP
+- CRUD operations for leagues, teams, players, and matches
+- Real-time score updates
+- Ball-by-ball commentary
+- Admin controls for managing tournaments, teams, and players
+
+---
+
+## 🧰 Tech Stack
 - **Backend:** Java, Spring Boot  
 - **Database:** MongoDB Atlas  
 - **Security:** Spring Security, JWT  
-- **Authentication:** Email OTP verification  
+- **Email Verification:** SMTP-based OTP  
 
 ---
 
-## API Endpoints
+## 📂 Setup Instructions
 
-### Authentication (`/api/auth`)
-1. **POST /api/auth/signup** – Register new user and send OTP.  
-2. **POST /api/auth/verify-otp** – Verify OTP for email.  
-3. **POST /api/auth/login** – Login and receive JWT token.  
-4. **GET /api/auth/me** – Get current authenticated user.  
-5. **DELETE /api/auth** – Delete user account.
-
-### Match & Tournament Management (`/api`)
-- CRUD operations for leagues, teams, players, matches, and scores.
-- Real-time score updates and ball-by-ball commentary.
-
----
-
-## Installation & Setup
-
-### Prerequisites
-- Java 21
-- Maven 3+
-- MongoDB Atlas account or local MongoDB
-- Git
-
-### Steps
-1. **Clone the repository**
+### Clone the repository
 ```bash
 git clone https://github.com/anujyadav2244/Cricbook-Local-Cricket-Scoring-Web-App.git
 cd cricbook/server
 ````
 
-2. **Configure application.properties**
+### Configure environment
 
-* MongoDB URI
-* JWT secret
-* Mail SMTP config (if using email OTP)
+* Update `src/main/resources/application.properties` with:
 
-3. **Run the backend**
+  * MongoDB URI
+  * JWT secret
+  * SMTP mail config (for OTP)
+
+### Run the backend
 
 ```bash
 ./mvnw spring-boot:run
 ```
 
-The backend will run at `http://localhost:8080`.
+Backend will be available at `http://localhost:8080`.
 
 ---
 
-## Folder Structure
+## 📄 License
 
-```
-server/
-├── src/main/java/com/cricbook/cricbook/
-│   ├── config/          # Security and app configuration
-│   ├── controller/      # REST API controllers
-│   ├── model/           # Entities and DTOs
-│   ├── repository/      # MongoDB repositories
-│   └── service/         # Business logic and services
-└── src/main/resources/
-    ├── application.properties
-    └── application-sample.properties
+This project is licensed under the MIT License. You are free to use, modify, and distribute this software with proper attribution.
+
+---
+
+## About
+
+Cricbook backend powers a local cricket scoring platform, enabling admins to manage leagues, matches, teams, and provide real-time scores and commentary for local tournaments.
+
 ```
 
 ---
 
-## Contributing
+If you want, I can also make a **super short version** specifically optimized for GitHub **homepage preview**, which highlights the project and tech stack at a glance.  
 
-1. Fork the repository.
-2. Create a new branch (`git checkout -b feature/YourFeature`).
-3. Commit your changes (`git commit -m 'Add new feature'`).
-4. Push to the branch (`git push origin feature/YourFeature`).
-5. Open a pull request.
-
----
-
-## License
-
-MIT License © 2025 Anuj Yadav
-
+Do you want me to do that?
+```
