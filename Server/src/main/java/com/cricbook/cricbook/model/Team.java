@@ -12,9 +12,9 @@ public class Team {
     @Id
     private String id;
     private String name;
+    private String leagueId;
     private String coach;
     public List<Player> squad;
-    public List<Player> playingXI;
     public Player captain;
     public Player viceCaptain;
 
