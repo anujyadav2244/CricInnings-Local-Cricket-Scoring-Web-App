@@ -1,7 +1,5 @@
 package com.cricbook.cricbook.controller;
 
-
-
 import java.time.LocalDateTime;
 import java.util.Map;
 import java.util.Optional;
@@ -16,6 +14,7 @@ import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -44,6 +43,7 @@ public class AdminAuthController {
     @Autowired
     private JwtUtil jwtUtil;
 
+    // ----------------- SIGNUP -----------------
     @PostMapping("/signup")
     public ResponseEntity<Map<String, String>> signup(@Valid @RequestBody Admin admin) {
         try {
@@ -70,6 +70,7 @@ public class AdminAuthController {
         }
     }
 
+    // ----------------- VERIFY OTP -----------------
     @PostMapping("/verify-otp")
     public ResponseEntity<Map<String, String>> verifyOtp(@RequestBody Map<String, String> request) {
         try {
@@ -117,6 +118,7 @@ public class AdminAuthController {
         }
     }
 
+    // ----------------- LOGIN -----------------
     @PostMapping("/login")
     public ResponseEntity<Map<String, String>> login(@RequestBody Map<String, String> loginRequest) {
         try {
@@ -158,6 +160,7 @@ public class AdminAuthController {
         }
     }
 
+    // ----------------- CURRENT USER -----------------
     @GetMapping("/me")
     public ResponseEntity<?> getCurrentUser() {
         Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
@@ -170,6 +173,36 @@ public class AdminAuthController {
                 .orElse(ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("message", "User not found")));
     }
 
+    // ----------------- UPDATE PROFILE -----------------
+    @PutMapping("/update")
+    public ResponseEntity<?> updateProfile(@RequestBody Map<String, String> updateRequest) {
+        Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        if (principal == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("message", "Unauthorized"));
+        }
+        String email = principal.toString();
+
+        return adminRepository.findByEmail(email).map(admin -> {
+            if (updateRequest.containsKey("name")) {
+                admin.setName(updateRequest.get("name"));
+            }
+            if (updateRequest.containsKey("password")) {
+                admin.setPassword(passwordEncoder.encode(updateRequest.get("password")));
+            }
+            adminRepository.save(admin);
+            return ResponseEntity.ok(Map.of("message", "Profile updated successfully"));
+        }).orElse(ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("message", "User not found")));
+    }
+
+    // ----------------- LOGOUT -----------------
+    @PostMapping("/logout")
+    public ResponseEntity<Map<String, String>> logout() {
+        // For JWT: client should just delete token from frontend
+        SecurityContextHolder.clearContext();
+        return ResponseEntity.ok(Map.of("message", "Logged out successfully"));
+    }
+
+    // ----------------- DELETE ACCOUNT -----------------
     @DeleteMapping
     public ResponseEntity<?> deleteCurrentUser() {
         Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
@@ -181,6 +214,5 @@ public class AdminAuthController {
             adminRepository.delete(admin);
             return ResponseEntity.ok(Map.of("message", "User account deleted successfully"));
         }).orElse(ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("message", "User not found")));
-
     }
 }
