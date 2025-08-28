@@ -1,4 +1,4 @@
-package com.cricbook.cricbook.service;
+package com.cricbook.cricbook.admin;
 
 import java.time.LocalDateTime;
 import java.util.Map;
@@ -8,10 +8,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import com.cricbook.cricbook.model.Admin;
-import com.cricbook.cricbook.repository.AdminRepository;
 import com.cricbook.cricbook.security.JwtBlacklistService;
 import com.cricbook.cricbook.security.JwtUtil;
+import com.cricbook.cricbook.service.EmailService;
 
 @Service
 public class AdminService {

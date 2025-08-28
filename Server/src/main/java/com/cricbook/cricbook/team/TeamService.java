@@ -1,14 +1,13 @@
-package com.cricbook.cricbook.service;
+package com.cricbook.cricbook.team;
 
 import java.util.List;
 import java.util.UUID;
 
 import org.springframework.stereotype.Service;
 
+import com.cricbook.cricbook.league.League;
+import com.cricbook.cricbook.league.LeagueRepository;
 import com.cricbook.cricbook.model.Player;
-import com.cricbook.cricbook.model.Team;
-import com.cricbook.cricbook.repository.LeagueRepository;
-import com.cricbook.cricbook.repository.TeamRepository;
 import com.cricbook.cricbook.security.JwtBlacklistService;
 import com.cricbook.cricbook.security.JwtUtil;
 
@@ -28,7 +27,8 @@ public class TeamService {
         String adminId = validateToken(token);
 
         var leagueOpt = leagueRepository.findById(team.getLeagueId());
-        if (leagueOpt.isEmpty()) throw new Exception("League not found!");
+        if (leagueOpt.isEmpty())
+            throw new Exception("League not found!");
         if (!leagueOpt.get().getAdminId().equals(adminId))
             throw new Exception("You are not authorized to add team to this league!");
 
@@ -46,11 +46,12 @@ public class TeamService {
                 .orElseThrow(() -> new Exception("Team not found"));
 
         var leagueOpt = leagueRepository.findById(existingTeam.getLeagueId());
-        if (leagueOpt.isEmpty()) throw new Exception("League not found!");
+        if (leagueOpt.isEmpty())
+            throw new Exception("League not found!");
         if (!leagueOpt.get().getAdminId().equals(adminId))
             throw new Exception("You are not authorized to update this team!");
 
-        assignPlayerIds(team); // assign IDs to new players
+        assignPlayerIds(team);
         validateTeam(team, existingTeam);
 
         existingTeam.setName(team.getName());
@@ -70,12 +71,29 @@ public class TeamService {
                 .orElseThrow(() -> new Exception("Team not found"));
 
         var leagueOpt = leagueRepository.findById(team.getLeagueId());
-        if (leagueOpt.isEmpty()) throw new Exception("League not found!");
+        if (leagueOpt.isEmpty())
+            throw new Exception("League not found!");
         if (!leagueOpt.get().getAdminId().equals(adminId))
             throw new Exception("You are not authorized to delete this team!");
 
         teamRepository.delete(team);
     }
+
+    public void deleteAllTeamsByAdmin(String token) throws Exception {
+    String adminId = validateToken(token);
+
+    // Get all leagues of this admin
+    List<League> adminLeagues = leagueRepository.findByAdminId(adminId);
+
+    for (League league : adminLeagues) {
+        // Get all teams of this league
+        List<Team> teams = teamRepository.findByLeagueId(league.getId());
+
+        // Delete each team
+        teamRepository.deleteAll(teams); // <- Bulk delete
+    }
+}
+
 
     // ======= GET TEAM =======
     public Team getTeamById(String id) throws Exception {
@@ -85,7 +103,8 @@ public class TeamService {
 
     public Team getTeamByName(String name) throws Exception {
         Team team = teamRepository.findByName(name);
-        if (team == null) throw new Exception("Team not found");
+        if (team == null)
+            throw new Exception("Team not found");
         return team;
     }
 
@@ -95,7 +114,7 @@ public class TeamService {
 
     // ======= VALIDATION LOGIC =======
     private void validateTeam(Team team, Team existingTeam) throws Exception {
-        // Duplicate name check
+        // Duplicate team name
         Team duplicate = teamRepository.findByName(team.getName());
         if (duplicate != null && (existingTeam == null || !duplicate.getId().equals(existingTeam.getId())))
             throw new Exception("Another team with this name already exists!");
@@ -111,49 +130,33 @@ public class TeamService {
         // Coach cannot be in squad
         boolean coachInSquad = team.getSquad().stream()
                 .anyMatch(p -> p.getName().trim().equalsIgnoreCase(team.getCoach().trim()));
-        if (coachInSquad) throw new Exception("Coach cannot be part of the squad!");
+        if (coachInSquad)
+            throw new Exception("Coach cannot be part of the squad!");
 
-        // Captain & Vice-Captain validations
+        // Captain and Vice-Captain validations
         if (team.getCaptain() == null || team.getViceCaptain() == null)
             throw new Exception("Captain and Vice-Captain must be assigned!");
 
         boolean captainInSquad = team.getSquad().stream()
-                .anyMatch(p -> p.getId().equals(team.getCaptain().getId()));
+                .anyMatch(p -> p.getName().trim().equalsIgnoreCase(team.getCaptain().trim()));
         boolean viceCaptainInSquad = team.getSquad().stream()
-                .anyMatch(p -> p.getId().equals(team.getViceCaptain().getId()));
+                .anyMatch(p -> p.getName().trim().equalsIgnoreCase(team.getViceCaptain().trim()));
 
-        if (!captainInSquad) throw new Exception("Captain must be in the squad!");
-        if (!viceCaptainInSquad) throw new Exception("Vice-Captain must be in the squad!");
-        if (team.getCaptain().getId().equals(team.getViceCaptain().getId()))
+        if (!captainInSquad)
+            throw new Exception("Captain must be part of the squad!");
+        if (!viceCaptainInSquad)
+            throw new Exception("Vice-Captain must be part of the squad!");
+        if (team.getCaptain().equalsIgnoreCase(team.getViceCaptain()))
             throw new Exception("Captain and Vice-Captain must be different!");
     }
 
     // ======= ASSIGN PLAYER IDS =======
-    private void assignPlayerIds(Team team) throws Exception {
-        // Assign ID to each player if not present
+    private void assignPlayerIds(Team team) {
         for (Player p : team.getSquad()) {
             if (p.getId() == null || p.getId().isEmpty()) {
                 p.setId(UUID.randomUUID().toString());
             }
         }
-
-        // Map captain and vice-captain from squad by name
-        boolean captainFound = false;
-        boolean viceCaptainFound = false;
-
-        for (Player p : team.getSquad()) {
-            if (p.getName().trim().equalsIgnoreCase(team.getCaptain().getName().trim())) {
-                team.setCaptain(p);
-                captainFound = true;
-            }
-            if (p.getName().trim().equalsIgnoreCase(team.getViceCaptain().getName().trim())) {
-                team.setViceCaptain(p);
-                viceCaptainFound = true;
-            }
-        }
-
-        if (!captainFound) throw new Exception("Captain must be part of the squad!");
-        if (!viceCaptainFound) throw new Exception("Vice-Captain must be part of the squad!");
     }
 
     // ======= VALIDATE TOKEN =======
@@ -162,10 +165,9 @@ public class TeamService {
             throw new Exception("Authorization header missing or invalid!");
 
         String jwt = token.substring(7);
-
         if (blacklistService.isBlacklisted(jwt))
             throw new Exception("Token is invalid or logged out. Please login again!");
 
-        return jwtUtil.extractEmail(jwt); // returns adminId/email
+        return jwtUtil.extractEmail(jwt); // adminId/email
     }
 }

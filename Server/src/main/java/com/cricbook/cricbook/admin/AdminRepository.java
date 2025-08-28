@@ -1,10 +1,8 @@
-package com.cricbook.cricbook.repository;
+package com.cricbook.cricbook.admin;
 
 import java.util.Optional;
 
 import org.springframework.data.mongodb.repository.MongoRepository;
-
-import com.cricbook.cricbook.model.Admin;
 
 
 public interface AdminRepository extends MongoRepository<Admin, String> {

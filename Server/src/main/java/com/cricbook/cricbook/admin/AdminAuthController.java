@@ -1,4 +1,4 @@
-package com.cricbook.cricbook.controller;
+package com.cricbook.cricbook.admin;
 
 import java.util.Map;
 
@@ -6,9 +6,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
-
-import com.cricbook.cricbook.model.Admin;
-import com.cricbook.cricbook.service.AdminService;
 
 @RestController
 @RequestMapping("/api/auth")

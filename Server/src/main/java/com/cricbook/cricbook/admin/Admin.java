@@ -1,4 +1,4 @@
-package com.cricbook.cricbook.model;
+package com.cricbook.cricbook.admin;
 
 import jakarta.validation.constraints.*;
 import lombok.*;
