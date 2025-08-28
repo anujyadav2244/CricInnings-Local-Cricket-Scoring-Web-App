@@ -1,14 +1,14 @@
 package com.cricbook.cricbook.controller;
 
-import java.util.List;
 import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
 import com.cricbook.cricbook.model.League;
-import com.cricbook.cricbook.repository.LeagueRepository;
+import com.cricbook.cricbook.service.LeagueService;
 
 @RestController
 @RequestMapping("/api/leagues")
@@ -16,67 +16,62 @@ import com.cricbook.cricbook.repository.LeagueRepository;
 public class LeagueController {
 
     @Autowired
-    private LeagueRepository leagueRepository;
+    private LeagueService leagueService;
 
-    // ✅ Create League
     @PostMapping("/create")
     public ResponseEntity<?> createLeague(@RequestBody League league) {
         try {
-            // Check for duplicate league name
-            if (leagueRepository.findByName(league.getName()).isPresent()) {
-                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                        .body(Map.of("message", "League name already exists!"));
-            }
-
-            // Check number of teams
-            if (league.getNoOfTeams() != league.getTeams().size()) {
-                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                        .body(Map.of("message", "noOfTeams must match the size of teams list!"));
-            }
-
-            League savedLeague = leagueRepository.save(league);
-            return ResponseEntity.ok(savedLeague);
-
-        } catch (Exception e) {
-            e.printStackTrace();
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(Map.of("message", "Error while creating league."));
+            return ResponseEntity.ok(leagueService.createLeague(league));
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(Map.of("message", e.getMessage()));
         }
     }
 
-    // Get League by ID
+    @PutMapping("/update/{id}")
+    public ResponseEntity<?> updateLeague(@PathVariable String id, @RequestBody League league) {
+        try {
+            return ResponseEntity.ok(leagueService.updateLeague(id, league));
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(Map.of("message", e.getMessage()));
+        }
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<?> deleteLeague(@PathVariable String id) {
+        try {
+            leagueService.deleteLeague(id);
+            return ResponseEntity.ok(Map.of("message", "League deleted successfully!"));
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(Map.of("message", e.getMessage()));
+        }
+    }
+
     @GetMapping("/{id}")
     public ResponseEntity<?> getLeagueById(@PathVariable String id) {
-        return leagueRepository.findById(id)
-                .map(league -> ResponseEntity.ok().body(league))
-                .orElse(ResponseEntity.notFound().build());
+        return leagueService.getLeagueById(id)
+                .<ResponseEntity<?>>map(ResponseEntity::ok)
+                .orElseGet(() -> ResponseEntity.status(HttpStatus.NOT_FOUND)
+                        .body(Map.of("message", "League not found")));
     }
 
-    // Get League by Name
     @GetMapping("/name/{name}")
     public ResponseEntity<?> getLeagueByName(@PathVariable String name) {
-        return leagueRepository.findByName(name)
-                .map(league -> ResponseEntity.ok().body(league))
-                .orElse(ResponseEntity.notFound().build());
+        return leagueService.getLeagueByName(name)
+                .<ResponseEntity<?>>map(ResponseEntity::ok)
+                .orElseGet(() -> ResponseEntity.status(HttpStatus.NOT_FOUND)
+                        .body(Map.of("message", "League not found")));
     }
 
-    // Get All Leagues
+    @GetMapping("/my-leagues")
+    public ResponseEntity<?> getMyLeagues() {
+        return ResponseEntity.ok(leagueService.getLeaguesByAdmin());
+    }
+
     @GetMapping
-    public ResponseEntity<List<League>> getAllLeagues() {
-        return ResponseEntity.ok(leagueRepository.findAll());
-    }
-
-    // Delete League
-    @DeleteMapping("/{id}")
-    public ResponseEntity<?> deleteLeagueById(@PathVariable String id) {
-        leagueRepository.deleteById(id);
-        return ResponseEntity.ok(Map.of("message", "League deleted successfully!"));
-    }
-
-    // Delete League
-    @DeleteMapping("/name/{name}")
-    public ResponseEntity<?> deleteLeagueByName(@PathVariable String name) {
-        leagueRepository.findByName(name).ifPresent(league -> leagueRepository.delete(league));
-        return ResponseEntity.ok(Map.of("message", "League deleted successfully!"));
+    public ResponseEntity<?> getAllLeagues() {
+        return ResponseEntity.ok(leagueService.getAllLeagues());
     }
 }

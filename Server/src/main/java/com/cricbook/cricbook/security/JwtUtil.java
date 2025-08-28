@@ -1,7 +1,5 @@
 package com.cricbook.cricbook.security;
 
-
-
 import java.nio.charset.StandardCharsets;
 import java.security.Key;
 import java.util.Date;
@@ -34,7 +32,7 @@ public class JwtUtil {
 
     public String generateToken(String email) {
         Date now = new Date();
-        Date exp = new Date(now.getTime() + expirationMs);
+        Date exp = new Date(now.getTime() + expirationMs); // e.g., 24h
         return Jwts.builder()
                 .setSubject(email)
                 .setIssuedAt(now)
@@ -52,15 +50,12 @@ public class JwtUtil {
                 .getSubject();
     }
 
-    public boolean validateToken(String token) {
-        try {
-            Jwts.parserBuilder()
-                    .setSigningKey(getKey())
-                    .build()
-                    .parseClaimsJws(token);
-            return true;
-        } catch (JwtException e) {
-            return false;
-        }
+    public boolean validateToken(String token) throws JwtException {
+        Jwts.parserBuilder()
+                .setSigningKey(getKey())
+                .build()
+                .parseClaimsJws(token); // throws exception if invalid/expired
+        return true; // valid
     }
+
 }

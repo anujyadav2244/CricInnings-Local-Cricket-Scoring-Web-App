@@ -21,4 +21,5 @@ public class Player {
     private String battingStyle; // Left Hander / Right Hander
     private String bowlingType;  // Fast/Spin
     private String bowlingStyle; // eg. Right Arm Off Spin, Left Arm Orthodox etc.
+    // 
 }

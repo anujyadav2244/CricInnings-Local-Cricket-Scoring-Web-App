@@ -1,8 +1,8 @@
 package com.cricbook.cricbook.model;
 
 import java.time.LocalDate;
-import java.time.LocalTime;
 
+import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import lombok.AllArgsConstructor;
@@ -14,14 +14,16 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 
-@Document(collection = "matche")
-public class Matches {
+@Document(collection = "match")
+public class Match {
 
+    @Id
+    private String id;
+    private String leagueId;
     private String team1;
     private String team2;
-
-    private LocalDate date;
-    private LocalTime time;
+    
+    private LocalDate matchDate;
 
     private String venue;
     private String result;
