@@ -57,5 +57,5 @@ Backend will be available at `http://localhost:8080`.
 ---
 
 ## 📄 License
-This project is licensed under the [MIT License](./LICENSE).  
+This project is licensed under the [CRIC License](./LICENSE).  
 You are free to use, modify, and distribute this software with proper attribution.
