@@ -157,15 +157,5 @@ public class TeamService {
     }
 
     // ======= VALIDATE TOKEN =======
-    private String validateToken(String token) throws Exception {
-        if (token == null || !token.startsWith("Bearer "))
-            throw new Exception("Authorization header missing or invalid!");
-
-        String jwt = token.substring(7);
-
-        if (blacklistService.isBlacklisted(jwt))
-            throw new Exception("Token is invalid or logged out. Please login again!");
-
-        return jwtUtil.extractEmail(jwt); // returns adminId/email
-    }
+    
 }
