@@ -105,7 +105,7 @@ public class TeamController {
     }
 
     // ======= GET ALL TEAMS =======
-    @GetMapping
+    @GetMapping("/get-all")
     public ResponseEntity<List<Team>> getAllTeams() {
         return ResponseEntity.ok(teamService.getAllTeams());
     }
