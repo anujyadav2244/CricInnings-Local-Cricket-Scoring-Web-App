@@ -1,4 +1,4 @@
-# Cricbook – Local Cricket Scoring Backend
+#  🏏Cricbook – Local Cricket Scoring Backend
 
 Cricbook is the backend service for a local cricket tournament scoring web app. It provides APIs to manage leagues, teams, players, matches, scores, and real-time commentary.
 
@@ -51,11 +51,3 @@ cd cricbook/server
 
 Backend will be available at `http://localhost:8080`.
 
----
-
-
----
-
-## 📄 License
-This project is licensed under the [MIT License](./LICENSE).  
-You are free to use, modify, and distribute this software with proper attribution.
