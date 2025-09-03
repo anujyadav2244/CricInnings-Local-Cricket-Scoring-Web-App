@@ -27,6 +27,12 @@ public class Admin {
     @NotBlank(message = "Password is required")
     @Size(min = 6, message = "Password must be at least 6 characters")
     private String password;
+    @NotBlank(message = "oldPassword is required")
+    @Size(min = 6, message = "oldPassword must be at least 6 characters")
+    private String oldPassword;
+    @NotBlank(message = "newPassword is required")
+    @Size(min = 6, message = "newPassword must be at least 6 characters")
+    private String newPassword;
 
     private String otp;
     private LocalDateTime otpGeneratedAt;
