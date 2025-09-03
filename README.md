@@ -1,4 +1,4 @@
-# Cricbook – Local Cricket Scoring Backend
+#  🏏Cricbook – Local Cricket Scoring Backend
 
 Cricbook is the backend service for a local cricket tournament scoring web app. It provides APIs to manage leagues, teams, players, matches, scores, and real-time commentary.
 
