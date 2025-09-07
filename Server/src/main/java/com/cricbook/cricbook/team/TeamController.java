@@ -6,16 +6,8 @@ import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.CrossOrigin;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestHeader;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 @RestController
 @RequestMapping("/api/teams")
@@ -25,13 +17,14 @@ public class TeamController {
     @Autowired
     private TeamService teamService;
 
-    // ======= CREATE TEAM =======
-    @PostMapping("/create")
+    // ======= CREATE TEAM with logo upload =======
+    @PostMapping(value = "/create", consumes = { "multipart/form-data" })
     public ResponseEntity<?> createTeam(
             @RequestHeader("Authorization") String token,
-            @RequestBody Team team) {
+            @RequestPart("team") String teamJson,
+            @RequestPart(value = "logo", required = false) MultipartFile logoFile) {
         try {
-            Team savedTeam = teamService.createTeam(token, team);
+            Team savedTeam = teamService.createTeam(token, teamJson, logoFile);
             return ResponseEntity.ok(savedTeam);
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
@@ -39,14 +32,15 @@ public class TeamController {
         }
     }
 
-    // ======= UPDATE TEAM =======
-    @PutMapping("/update/{id}")
+    // ======= UPDATE TEAM with logo upload =======
+    @PutMapping(value = "/update/{id}", consumes = { "multipart/form-data" })
     public ResponseEntity<?> updateTeam(
             @RequestHeader("Authorization") String token,
             @PathVariable String id,
-            @RequestBody Team team) {
+            @RequestPart("team") String teamJson,
+            @RequestPart(value = "logo", required = false) MultipartFile logoFile) {
         try {
-            Team updatedTeam = teamService.updateTeam(token, id, team);
+            Team updatedTeam = teamService.updateTeam(token, id, teamJson, logoFile);
             return ResponseEntity.ok(updatedTeam);
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
