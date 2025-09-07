@@ -4,12 +4,15 @@ import java.util.List;
 import java.util.UUID;
 
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
 import com.cricbook.cricbook.league.League;
 import com.cricbook.cricbook.league.LeagueRepository;
 import com.cricbook.cricbook.model.Player;
 import com.cricbook.cricbook.security.JwtBlacklistService;
 import com.cricbook.cricbook.security.JwtUtil;
+import com.cricbook.cricbook.cloudinary.CloudinaryService;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import lombok.RequiredArgsConstructor;
 
@@ -21,10 +24,14 @@ public class TeamService {
     private final LeagueRepository leagueRepository;
     private final JwtUtil jwtUtil;
     private final JwtBlacklistService blacklistService;
+    private final CloudinaryService cloudinaryService;
+    private final ObjectMapper objectMapper;
 
     // ======= CREATE TEAM =======
-    public Team createTeam(String token, Team team) throws Exception {
+    public Team createTeam(String token, String teamJson, MultipartFile logoFile) throws Exception {
         String adminId = validateToken(token);
+
+        Team team = objectMapper.readValue(teamJson, Team.class);
 
         var leagueOpt = leagueRepository.findById(team.getLeagueId());
         if (leagueOpt.isEmpty())
@@ -35,11 +42,25 @@ public class TeamService {
         assignPlayerIds(team);
         validateTeam(team, null);
 
+        // Upload team logo if provided
+        if (logoFile != null && !logoFile.isEmpty()) {
+            // Check if this logo is already used
+            List<Team> allTeams = teamRepository.findAll();
+            for (Team t : allTeams) {
+                if (t.getLogoUrl() != null && t.getLogoUrl().contains(logoFile.getOriginalFilename())) {
+                    throw new Exception("This logo is already assigned to another team!");
+                }
+            }
+
+            String logoUrl = cloudinaryService.uploadFile(logoFile, "team_logos");
+            team.setLogoUrl(logoUrl);
+        }
+
         return teamRepository.save(team);
     }
 
     // ======= UPDATE TEAM =======
-    public Team updateTeam(String token, String id, Team team) throws Exception {
+    public Team updateTeam(String token, String id, String teamJson, MultipartFile logoFile) throws Exception {
         String adminId = validateToken(token);
 
         Team existingTeam = teamRepository.findById(id)
@@ -51,6 +72,8 @@ public class TeamService {
         if (!leagueOpt.get().getAdminId().equals(adminId))
             throw new Exception("You are not authorized to update this team!");
 
+        Team team = objectMapper.readValue(teamJson, Team.class);
+
         assignPlayerIds(team);
         validateTeam(team, existingTeam);
 
@@ -60,40 +83,91 @@ public class TeamService {
         existingTeam.setCaptain(team.getCaptain());
         existingTeam.setViceCaptain(team.getViceCaptain());
 
+        // Update logo if new one provided
+        if (logoFile != null && !logoFile.isEmpty()) {
+            // Check if this logo is already used by another team
+            List<Team> allTeams = teamRepository.findAll();
+            for (Team t : allTeams) {
+                if (!t.getId().equals(existingTeam.getId()) &&
+                        t.getLogoUrl() != null &&
+                        t.getLogoUrl().contains(logoFile.getOriginalFilename())) {
+                    throw new Exception("This logo is already assigned to another team!");
+                }
+            }
+
+            // Delete old logo if exists
+            if (existingTeam.getLogoUrl() != null && !existingTeam.getLogoUrl().isEmpty()) {
+                cloudinaryService.deleteFile(existingTeam.getLogoUrl());
+            }
+
+            String logoUrl = cloudinaryService.uploadFile(logoFile, "team_logos");
+            existingTeam.setLogoUrl(logoUrl);
+        }
+
         return teamRepository.save(existingTeam);
     }
 
-    // ======= DELETE TEAM =======
+    // ======= DELETE TEAM BY ID =======
     public void deleteTeamById(String token, String id) throws Exception {
         String adminId = validateToken(token);
 
         Team team = teamRepository.findById(id)
                 .orElseThrow(() -> new Exception("Team not found"));
 
-        var leagueOpt = leagueRepository.findById(team.getLeagueId());
-        if (leagueOpt.isEmpty())
-            throw new Exception("League not found!");
-        if (!leagueOpt.get().getAdminId().equals(adminId))
+        League league = leagueRepository.findById(team.getLeagueId())
+                .orElseThrow(() -> new Exception("League not found!"));
+
+        if (!league.getAdminId().equals(adminId))
             throw new Exception("You are not authorized to delete this team!");
 
+        // Delete logo from Cloudinary if exists
+        if (team.getLogoUrl() != null && !team.getLogoUrl().isEmpty()) {
+            cloudinaryService.deleteFile(team.getLogoUrl());
+        }
+
+        // Remove team from league's teams array safely
+        List<String> leagueTeams = league.getTeams();
+        if (leagueTeams != null) {
+            leagueTeams.removeIf(t -> {
+                String[] parts = t.split(":");
+                return parts.length > 1 && parts[1].equals(team.getId());
+            });
+            league.setTeams(leagueTeams);
+            leagueRepository.save(league);
+        }
+
+        // Delete team from repository
         teamRepository.delete(team);
     }
 
+    // ======= DELETE ALL TEAMS FOR ADMIN =======
     public void deleteAllTeamsByAdmin(String token) throws Exception {
-    String adminId = validateToken(token);
+        String adminId = validateToken(token);
 
-    // Get all leagues of this admin
-    List<League> adminLeagues = leagueRepository.findByAdminId(adminId);
+        List<League> adminLeagues = leagueRepository.findByAdminId(adminId);
 
-    for (League league : adminLeagues) {
-        // Get all teams of this league
-        List<Team> teams = teamRepository.findByLeagueId(league.getId());
+        for (League league : adminLeagues) {
+            List<Team> teams = teamRepository.findByLeagueId(league.getId());
 
-        // Delete each team
-        teamRepository.deleteAll(teams); // <- Bulk delete
+            // Delete each team's logo safely
+            for (Team team : teams) {
+                if (team.getLogoUrl() != null && !team.getLogoUrl().isEmpty()) {
+                    cloudinaryService.deleteFile(team.getLogoUrl());
+                }
+            }
+
+            // Clear league's teams array safely
+            if (league.getTeams() != null) {
+                league.setTeams(List.of());
+                leagueRepository.save(league);
+            }
+
+            // Delete all teams from repository
+            if (teams != null && !teams.isEmpty()) {
+                teamRepository.deleteAll(teams);
+            }
+        }
     }
-}
-
 
     // ======= GET TEAM =======
     public Team getTeamById(String id) throws Exception {
@@ -114,26 +188,21 @@ public class TeamService {
 
     // ======= VALIDATION LOGIC =======
     private void validateTeam(Team team, Team existingTeam) throws Exception {
-        // Duplicate team name
         Team duplicate = teamRepository.findByName(team.getName());
         if (duplicate != null && (existingTeam == null || !duplicate.getId().equals(existingTeam.getId())))
             throw new Exception("Another team with this name already exists!");
 
-        // League must exist
         if (team.getLeagueId() == null || leagueRepository.findById(team.getLeagueId()).isEmpty())
             throw new Exception("Team must belong to a valid league!");
 
-        // Squad validations
         if (team.getSquad() == null || team.getSquad().size() < 15)
             throw new Exception("Squad must have at least 15 players!");
 
-        // Coach cannot be in squad
         boolean coachInSquad = team.getSquad().stream()
                 .anyMatch(p -> p.getName().trim().equalsIgnoreCase(team.getCoach().trim()));
         if (coachInSquad)
             throw new Exception("Coach cannot be part of the squad!");
 
-        // Captain and Vice-Captain validations
         if (team.getCaptain() == null || team.getViceCaptain() == null)
             throw new Exception("Captain and Vice-Captain must be assigned!");
 

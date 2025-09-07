@@ -28,6 +28,6 @@ public class League {
     private String venue;
     private String leagueFormat; // ODI, T20, Test
     private List<String> umpires;
-    
     private String leagueFormatType; // SINGLE_ROUND_ROBIN, DOUBLE_ROUND_ROBIN, GROUP
+    private String logoUrl;
 }

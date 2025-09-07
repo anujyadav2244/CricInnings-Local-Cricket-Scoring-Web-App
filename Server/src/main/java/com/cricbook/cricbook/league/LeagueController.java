@@ -6,9 +6,20 @@ import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RequestPart;
+import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
 import com.cricbook.cricbook.match.MatchSchedule;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 @RestController
 @RequestMapping("/api/leagues")
@@ -18,59 +29,67 @@ public class LeagueController {
     @Autowired
     private LeagueService leagueService;
 
-    // -------- Create League (with league stage matches + knockout stage: semifinals/final/eliminator) --------
-    @PostMapping("/create")
+    @PostMapping(value = "/create", consumes = { "multipart/form-data" })
     public ResponseEntity<?> createLeague(
-            @RequestBody League league,
+            @RequestPart("league") String leagueJson,
+            @RequestPart(value = "logo", required = false) MultipartFile logoFile,
             @RequestParam(defaultValue = "false") boolean includeEliminator,
             @RequestParam(defaultValue = "true") boolean includeKnockouts) {
         try {
+            ObjectMapper objectMapper = new ObjectMapper();
+            objectMapper.findAndRegisterModules();
+            League league = objectMapper.readValue(leagueJson, League.class);
+
             List<MatchSchedule> matches = leagueService.createLeagueAndScheduleMatches(
-                    league, includeEliminator, includeKnockouts);
-            return ResponseEntity.ok(matches);
-        } catch (RuntimeException e) {
+                    league, logoFile, includeEliminator, includeKnockouts);
+
+            return ResponseEntity.ok(Map.of(
+                    "message", "League created successfully",
+                    "leagueId", league.getId(),
+                    "matches", matches));
+        } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body(Map.of("message", e.getMessage()));
+                    .body(Map.of("error", e.getMessage()));
         }
     }
 
-    // -------- Update League --------
     @PutMapping("/update/{id}")
-    public ResponseEntity<?> updateLeague(@PathVariable String id, @RequestBody League league) {
+    public ResponseEntity<?> updateLeague(
+            @PathVariable String id,
+            @RequestPart("league") League league,
+            @RequestPart(value = "logo", required = false) MultipartFile logoFile) {
         try {
-            return ResponseEntity.ok(leagueService.updateLeague(id, league));
+            return ResponseEntity.ok(leagueService.updateLeague(id, league, logoFile));
         } catch (RuntimeException e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                     .body(Map.of("message", e.getMessage()));
         }
     }
 
-    // -------- Delete Single League (with teams & matches) --------
     @DeleteMapping("/delete/{id}")
     public ResponseEntity<?> deleteLeague(@PathVariable String id) {
         try {
             leagueService.deleteLeague(id);
-            return ResponseEntity.ok(Map.of("message", "League and all related teams & matches deleted successfully!"));
+            return ResponseEntity.ok(Map.of("message", "League and all related matches deleted successfully!"));
         } catch (RuntimeException e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                     .body(Map.of("message", e.getMessage()));
         }
     }
 
-    // -------- Delete All Leagues of Admin (with all teams & matches) --------
     @DeleteMapping("/delete-all")
     public ResponseEntity<?> deleteAllLeagues() {
         try {
             leagueService.deleteAllLeagues();
-            return ResponseEntity.ok(Map.of("message", "All leagues and all related teams & matches deleted successfully!"));
+            return ResponseEntity
+                    .ok(Map.of("message", "All leagues and all related matches deleted successfully!"));
         } catch (RuntimeException e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                     .body(Map.of("message", e.getMessage()));
         }
     }
 
-    // -------- Get League by ID --------
-    @GetMapping("/{id}")
+    @GetMapping("/id/{id}")
     public ResponseEntity<?> getLeagueById(@PathVariable String id) {
         return leagueService.getLeagueById(id)
                 .<ResponseEntity<?>>map(ResponseEntity::ok)
@@ -78,7 +97,6 @@ public class LeagueController {
                         .body(Map.of("message", "League not found")));
     }
 
-    // -------- Get League by Name --------
     @GetMapping("/name/{name}")
     public ResponseEntity<?> getLeagueByName(@PathVariable String name) {
         return leagueService.getLeagueByName(name)
@@ -87,13 +105,11 @@ public class LeagueController {
                         .body(Map.of("message", "League not found")));
     }
 
-    // -------- Get My Leagues (Admin) --------
     @GetMapping("/my-leagues")
     public ResponseEntity<?> getMyLeagues() {
         return ResponseEntity.ok(leagueService.getLeaguesByAdmin());
     }
 
-    // -------- Get All Leagues --------
     @GetMapping
     public ResponseEntity<?> getAllLeagues() {
         return ResponseEntity.ok(leagueService.getAllLeagues());

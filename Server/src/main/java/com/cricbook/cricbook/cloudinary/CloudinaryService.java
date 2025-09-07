@@ -19,12 +19,32 @@ public class CloudinaryService {
     }
 
     public String uploadFile(MultipartFile file, String folder) throws IOException {
-        Map uploadResult = cloudinary.uploader().upload(file.getBytes(),
-                ObjectUtils.asMap("folder", folder));
-        return uploadResult.get("secure_url").toString(); // returns uploaded file URL
+        try {
+            Map uploadResult = cloudinary.uploader().upload(file.getBytes(),
+                    ObjectUtils.asMap("folder", folder));
+            return uploadResult.get("secure_url").toString();
+        } catch (Exception e) {
+            throw new IOException("Failed to upload file to Cloudinary: " + e.getMessage());
+        }
     }
 
-    public Map deleteFile(String publicId) throws IOException {
-        return cloudinary.uploader().destroy(publicId, ObjectUtils.emptyMap());
+    public void deleteFile(String url) throws IOException {
+        try {
+            String publicId = extractPublicIdFromUrl(url);
+            cloudinary.uploader().destroy(publicId, ObjectUtils.emptyMap());
+        } catch (Exception e) {
+            throw new IOException("Failed to delete file from Cloudinary: " + e.getMessage());
+        }
+    }
+
+    private String extractPublicIdFromUrl(String url) {
+        // Example URL: https://res.cloudinary.com/your-cloud-name/image/upload/v1234567890/folder/filename.jpg
+        String[] parts = url.split("/upload/");
+        if (parts.length < 2) {
+            throw new IllegalArgumentException("Invalid Cloudinary URL");
+        }
+        String publicIdWithVersion = parts[1];
+        // Remove version prefix (e.g., v1234567890/) and file extension
+        return publicIdWithVersion.substring(publicIdWithVersion.indexOf("/") + 1).replaceAll("\\.[^.]+$", "");
     }
 }

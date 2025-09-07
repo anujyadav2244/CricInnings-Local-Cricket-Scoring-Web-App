@@ -25,4 +25,5 @@ public class Team {
     private List<Player> squad = new ArrayList<>();
     private String captain;       // store captain name
     private String viceCaptain;   // store vice-captain name
+    private String logoUrl;
 }
