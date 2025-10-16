@@ -1,6 +1,6 @@
-#  🏏Innings – Local Cricket Scoring Backend
+#  🏏CricInnings – Local Cricket Scoring Backend
 
-Innings is the backend service for a local cricket tournament scoring web app. It provides APIs to manage leagues, teams, players, matches, scores, and real-time commentary.
+CricInnings is the backend service for a local cricket tournament scoring web app. It provides APIs to manage leagues, teams, players, matches, scores, and real-time commentary.
 
 ---
 
