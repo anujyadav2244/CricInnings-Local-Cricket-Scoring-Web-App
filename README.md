@@ -1,6 +1,6 @@
-#  🏏CricInnings – Local Cricket Scoring Backend
+#  🏏Cricriser – Local Cricket Scoring Backend
 
-CricInnings is the backend service for a local cricket tournament scoring web app. It provides APIs to manage leagues, teams, players, matches, scores, and real-time commentary.
+Cricriser is the backend service for a local cricket tournament scoring web app. It provides APIs to manage leagues, teams, players, matches, scores, and real-time commentary.
 
 ---
 
@@ -31,8 +31,8 @@ Backend is under active development. Core features like authentication, match ma
 
 ### Clone the repository
 ```bash
-https://github.com/anujyadav2244/CricInnings-Local-Cricket-Scoring-Web-App.git
-cd cricinnings/server
+https://github.com/anujyadav2244/Cricriser-Local-Cricket-Scoring-Web-App.git
+cd cricriser/server
 ````
 
 ### Configure environment
