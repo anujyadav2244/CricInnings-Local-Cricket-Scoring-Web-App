@@ -31,8 +31,8 @@ Backend is under active development. Core features like authentication, match ma
 
 ### Clone the repository
 ```bash
-https://github.com/anujyadav2244/Innings-Local-Cricket-Scoring-Web-App.git
-cd innings/server
+https://github.com/anujyadav2244/CricInnings-Local-Cricket-Scoring-Web-App.git
+cd cricinnings/server
 ````
 
 ### Configure environment
