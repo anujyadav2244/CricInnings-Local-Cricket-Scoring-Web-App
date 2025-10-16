@@ -1,6 +1,6 @@
-#  🏏Cricbook – Local Cricket Scoring Backend
+#  🏏Innings – Local Cricket Scoring Backend
 
-Cricbook is the backend service for a local cricket tournament scoring web app. It provides APIs to manage leagues, teams, players, matches, scores, and real-time commentary.
+Innings is the backend service for a local cricket tournament scoring web app. It provides APIs to manage leagues, teams, players, matches, scores, and real-time commentary.
 
 ---
 
