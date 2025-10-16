@@ -31,8 +31,8 @@ Backend is under active development. Core features like authentication, match ma
 
 ### Clone the repository
 ```bash
-git clone https://github.com/anujyadav2244/Cricbook-Local-Cricket-Scoring-Web-App.git
-cd cricbook/server
+https://github.com/anujyadav2244/Innings-Local-Cricket-Scoring-Web-App.git
+cd innings/server
 ````
 
 ### Configure environment
